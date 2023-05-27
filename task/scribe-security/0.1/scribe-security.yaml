@@ -6,14 +6,14 @@ metadata:
   labels:
     app.kubernetes.io/version: "0.1"
   annotations:
-    tekton.dev/categories: Git
     tekton.dev/pipelines.minVersion: "0.12.1"
-    tekton.dev/tags: scribe-security
-    tekton.dev/displayName: scribe security analysis
+    tekton.dev/categories: Security
+    tekton.dev/tags: CLI, valint
+    tekton.dev/displayName: valint
     tekton.dev/platforms: "linux/amd64"
 spec:
   description: >-
-    This task can be used to generate sbom, verify and check reports
+    This task can be used to generate sbom and verify the sbom
   params:
     - name: args
       description: The repository URL to inspect
@@ -21,9 +21,12 @@ spec:
     - name: scribe-secret
       description: Scribe secret name
       type: string
+    - name: image-version-sha
+      description: sha of the valint image to be used
+      default: sha256:961e3e0292338e11f6c5c48645d684aaf05aa76c8e3e6fa2a786628b60c2a11d
   steps:
     - name: bom
-      image: scribesecuriy.jfrog.io/scribe-docker-public-local/valint:latest
+      image: scribesecuriy.jfrog.io/scribe-docker-public-local/valint@$(params.image-version-sha)
       script: |
         #!/bin/sh
         ARGS=""
