@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: scribe-security-task-run-10
+spec:
+  taskRef:
+    name: scribe-security
+  params:
+    - name: args
+      value: bom alpine:latest
+    - name: scribe-secret
+      value: scribe-secret

@@ -1,0 +1,58 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: scribe-security
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/categories: Git
+    tekton.dev/pipelines.minVersion: "0.12.1"
+    tekton.dev/tags: scribe-security
+    tekton.dev/displayName: scribe security analysis
+    tekton.dev/platforms: "linux/amd64"
+spec:
+  description: >-
+    This task can be used to generate sbom, verify and check reports
+  params:
+    - name: args
+      description: The repository URL to inspect
+      type: string
+    - name: scribe-secret
+      description: Scribe secret name
+      type: string
+  steps:
+    - name: bom
+      image: scribesecuriy.jfrog.io/scribe-docker-public-local/valint:latest
+      script: |
+        #!/bin/sh
+        ARGS=""
+        if [ "${PRODUCT_KEY}" != "" ]; then
+          ARGS="${ARGS} --product-key ${PRODUCT_KEY}"
+        fi
+        if [ "${SCRIBE_CLIENT_ID}" != "" ]; then
+          ARGS="${ARGS} -U ${SCRIBE_CLIENT_ID}"
+        fi
+        if [ "${SCRIBE_CLIENT_SECRET}" != "" ]; then
+          ARGS="${ARGS} -P ${SCRIBE_CLIENT_SECRET}"
+        fi
+        echo $VALINT_ARGS $ARGS
+        valint $VALINT_ARGS $ARGS
+      env:
+        - name: PRODUCT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: $(params.scribe-secret)
+              key: product_key
+        - name: SCRIBE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: $(params.scribe-secret)
+              key: client_id
+        - name: SCRIBE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: $(params.scribe-secret)
+              key: client_secret
+        - name: VALINT_ARGS
+          value: $(params.args)
