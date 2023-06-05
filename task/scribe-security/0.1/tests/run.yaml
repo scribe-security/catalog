@@ -1,26 +1,71 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: scribe-secret-2
+  name: scribe-secret
   annotations:
     tekton.dev/git-0: https://github.com
     tekton.dev/git-1: https://gitlab.com
     tekton.dev/docker-0: https://gcr.io
 type: Opaque
 stringData:
-  product_key: ""
   client_id: ""
   client_secret: ""
 ---
-apiVersion: tekton.dev/v1beta1
-kind: TaskRun
+apiVersion: v1
+kind: PersistentVolumeClaim
 metadata:
-  name: scribe-security-task-run-2
+  name: test-pvc
 spec:
-  taskRef:
-    name: scribe-security
-  params:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: scribe-security-test-pipeline
+spec:
+  workspaces:
+  - name: shared-workspace
+  tasks:
+  - name: scribe-security-bom
+    taskRef:
+      name: scribe-security
+    params:
     - name: args
       value: bom alpine:latest
+    - name: cache-dir
+      value: buildpacks-cache
     - name: scribe-secret
       value: scribe-secret
+  - name: scribe-security-verify
+    taskRef:
+      name: scribe-security
+    runAfter:
+    - scribe-security-bom
+    params:
+    - name: args
+      value: verify alpine:latest -vv
+    - name: cache-dir
+      value: buildpacks-cache
+    - name: scribe-secret
+      value: scribe-secret
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: scribe-test-pipeline-run
+spec:
+  pipelineRef:
+    name: scribe-security-test-pipeline
+  workspaces:
+  - name: shared-workspace
+    persistentvolumeclaim:
+      claimName: test-pvc
+  podTemplate:
+    volumes:
+    - name: buildpacks-cache
+      persistentVolumeClaim:
+        claimName: test-pvc
