@@ -14,13 +14,13 @@ stringData:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: test-pvc
+  name: test-pvc-cache
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
+      storage: 500m
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
@@ -35,7 +35,7 @@ spec:
       name: scribe-security
     params:
     - name: args
-      value: bom alpine:latest
+      value: bom alpine:latest -vv
     - name: cache-dir
       value: buildpacks-cache
     - name: scribe-secret
@@ -63,9 +63,9 @@ spec:
   workspaces:
   - name: shared-workspace
     persistentvolumeclaim:
-      claimName: test-pvc
+      claimName: test-pvc-cache
   podTemplate:
     volumes:
     - name: buildpacks-cache
       persistentVolumeClaim:
-        claimName: test-pvc
+        claimName: test-pvc-cache
