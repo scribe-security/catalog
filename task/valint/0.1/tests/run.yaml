@@ -40,9 +40,9 @@ spec:
       value: valint-cache
     - name: scribe-secret
       value: scribe-secret
-  - name: scribe-security-verify
+  - name: valint-verify
     taskRef:
-      name: scribe-security
+      name: valint
     runAfter:
     - valint-bom
     params:
@@ -59,7 +59,7 @@ metadata:
   name: valint-test-pipeline-run
 spec:
   pipelineRef:
-    name: scribe-security-test-pipeline
+    name: valint-test-pipeline
   workspaces:
   - name: shared-workspace
     persistentvolumeclaim:
