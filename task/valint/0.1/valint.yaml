@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: scribe-security
+  name: valint
   labels:
     app.kubernetes.io/version: "0.1"
   annotations:
@@ -51,7 +51,3 @@ spec:
             secretKeyRef:
               name: $(params.scribe-secret)
               key: client_secret
-
-  volumes:
-    - name: empty-dir
-      emptyDir: {}

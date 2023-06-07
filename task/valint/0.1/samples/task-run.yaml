@@ -4,7 +4,7 @@ metadata:
   name: scribe-security-task-run-10
 spec:
   taskRef:
-    name: scribe-security
+    name: valint
   params:
     - name: args
       value: bom alpine:latest

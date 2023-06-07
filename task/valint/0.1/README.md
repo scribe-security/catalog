@@ -57,10 +57,10 @@ This TaskRun runs the Task to generate sbom for images, files and compressed fil
 apiVersion: tekton.dev/v1beta1
 kind: TaskRun
 metadata:
-  name: scribe-security-task-run-10
+  name: valint-task-run-bom
 spec:
   taskRef:
-    name: scribe-security
+    name: valint
   params:
     - name: args
       value: bom alpine:latest
@@ -74,10 +74,10 @@ This task can also run the task to verify the sbom.
 apiVersion: tekton.dev/v1beta1
 kind: TaskRun
 metadata:
-  name: scribe-security-task-run-10
+  name: valint-task-run-verify
 spec:
   taskRef:
-    name: scribe-security
+    name: valint
   params:
     - name: args
       value: verify alpine:latest

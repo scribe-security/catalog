@@ -25,38 +25,38 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: scribe-security-test-pipeline
+  name: valint-test-pipeline
 spec:
   workspaces:
   - name: shared-workspace
   tasks:
-  - name: scribe-security-bom
+  - name: valint-bom
     taskRef:
-      name: scribe-security
+      name: valint
     params:
     - name: args
       value: bom alpine:latest -vv
     - name: cache-dir
-      value: buildpacks-cache
+      value: valint-cache
     - name: scribe-secret
       value: scribe-secret
   - name: scribe-security-verify
     taskRef:
       name: scribe-security
     runAfter:
-    - scribe-security-bom
+    - valint-bom
     params:
     - name: args
       value: verify alpine:latest -vv
-    - name: cache-dir
-      value: buildpacks-cache
+    - name: cache-90dir
+      value: valint-cache
     - name: scribe-secret
       value: scribe-secret
 ---
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: scribe-test-pipeline-run
+  name: valint-test-pipeline-run
 spec:
   pipelineRef:
     name: scribe-security-test-pipeline
@@ -66,6 +66,6 @@ spec:
       claimName: test-pvc-cache
   podTemplate:
     volumes:
-    - name: buildpacks-cache
+    - name: valint-cache
       persistentVolumeClaim:
         claimName: test-pvc-cache
