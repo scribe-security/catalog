@@ -17,6 +17,10 @@ spec:
   workspaces:
     - name: source-dir
       optional: true
+    - name: dockerconfig
+      description: Includes a docker `config.json`
+      optional: true
+      mountPath: /root/.docker
   params:
     - name: args
       description: The repository URL to inspect
