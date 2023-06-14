@@ -35,7 +35,7 @@ spec:
       name: valint
     params:
     - name: args
-      value: bom alpine:latest -vv
+      value: bom alpine:latest -vv -o statement
     - name: cache-dir
       value: valint-cache
     - name: scribe-secret
@@ -47,7 +47,7 @@ spec:
     - valint-bom
     params:
     - name: args
-      value: verify alpine:latest -vv
+      value: verify alpine:latest -vv -i statement
     - name: cache-90dir
       value: valint-cache
     - name: scribe-secret
