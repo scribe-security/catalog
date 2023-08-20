@@ -56,3 +56,9 @@ spec:
             secretKeyRef:
               name: $(params.scribe-secret)
               key: client_secret
+        - name: TEKTON_TASK_RUN_UID
+          value: context.taskRun.uid
+        - name: TEKTON_TASK_RUN_NAME
+          value: context.taskRun.name
+        - name: TEKTON_TASK_RUN_NAMESPACE
+          value: context.taskRun.namespace
