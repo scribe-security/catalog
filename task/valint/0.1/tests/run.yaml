@@ -33,39 +33,74 @@ spec:
   - name: valint-bom
     taskRef:
       name: valint
+    workspaces:
+    - name: output
+      workspace: shared-workspace
     params:
     - name: args
-      value: bom alpine:latest -vv -o statement
-    - name: cache-dir
-      value: valint-cache
-    - name: scribe-secret
-      value: scribe-secret
-  - name: valint-verify
+      value: 
+        - bom 
+        - alpine:latest
+        - -o=statement
+
+  - name: valint-verify-bom
     taskRef:
       name: valint
+    workspaces:
+    - name: output
+      workspace: shared-workspace
     runAfter:
     - valint-bom
     params:
     - name: args
-      value: verify alpine:latest -vv -i statement
-    - name: cache-90dir
-      value: valint-cache
-    - name: scribe-secret
-      value: scribe-secret
+      value: 
+        - verify 
+        - alpine:latest 
+        - -i=statement
+
+  - name: valint-slsa
+    taskRef:
+      name: valint
+    workspaces:
+    - name: output
+      workspace: shared-workspace
+    runAfter:
+    - valint-verify-bom
+    params:
+    - name: args
+      value: 
+        - slsa 
+        - alpine:latest
+        - -o=statement
+
+  - name: valint-verify-slsa
+    taskRef:
+      name: valint
+    workspaces:
+    - name: output
+      workspace: shared-workspace
+    runAfter:
+    - valint-slsa
+    params:
+    - name: args
+      value: 
+        - verify 
+        - alpine:latest 
+        - -i=statement-slsa
 ---
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: valint-test-pipeline-run
+  name: basic-tests
 spec:
   pipelineRef:
-    name: valint-test-pipeline
+    name: basic-tests
   workspaces:
   - name: shared-workspace
     persistentvolumeclaim:
-      claimName: test-pvc-cache
+      claimName: test-pvc-output
   podTemplate:
     volumes:
-    - name: valint-cache
+    - name: shared-workspace
       persistentVolumeClaim:
-        claimName: test-pvc-cache
+        claimName: test-pvc-output

@@ -7,6 +7,7 @@ spec:
     name: valint
   params:
     - name: args
-      value: bom alpine:latest
-    - name: scribe-secret
-      value: scribe-secret
+      value: 
+        - bom 
+        - alpine:latest
+

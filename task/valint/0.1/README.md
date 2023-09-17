@@ -1,49 +1,49 @@
-# Generate SBOM and Verify SBOM
+# Valint
 
-This task will help scribe security users to generate sbom and verify the sbom using tekton
+Valint is a tool used to manage `evidence` generation (for directories, file artifacts, images, and git repositories), storage and validation. Valint currently supports two types of evidence: **CycloneDX SBOMs** and **SLSA provenance**. It enables cryptographically signing the evidence generated allowing you to later verify artifacts against their origin and signer identity. 
 
-# Generate SBOM
+Valint also enables you to **capture** any 3rd party report, scan or configuration (any file) into evidence. 
 
-This task uses the scribe security valint image that can execute the valint binary
+## Installing the Task
 
-## Install the Task and create a secret
-
-```
+```bash
 kubectl apply -f https://api.hub.tekton.dev/v1/resource/tekton/task/scribe-security/0.1/raw
 ```
 
-Create a secret that has client_id, client_secret, product_id.
+## Storing your credentials
 
-Example scribe-security-secret.yaml
-```
+The `valint` task looks for a Kubernetes secret that stores your Scribe user credentials. This secret is called `scribe-secret` by default and is expected to have the keys `scribe-client-id` and `scribe-client-secret`.
+You can use the following example configuration. Make sure to provide the correct credentials for your Scribe environment.
+
+```yaml
+# scribe-secret.yaml
+---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: scribe-secret
-  annotations:
-    tekton.dev/git-0: https://github.com
-    tekton.dev/git-1: https://gitlab.com
-    tekton.dev/docker-0: https://gcr.io
+  name: orka-creds
 type: Opaque
 stringData:
-  product_key: $(product_key)
-  client_id: $(client_id)
-  client_secret: $(client_secret)
-
+  scribe_client_id: $(client_id)
+  scribe_client_secret: $(client_secret)
+  scribe_enable: true
 ```
 
-Example kubectl command
+```sh
+kubectl apply --namespace=<namespace> -f scribe-secret.yaml
 ```
-kubectl apply -f scribe-security-secret.yaml
-```
+
+Omit `--namespace` if installing in the `default` namespace.
+
+> **NOTE:** These credentials are used by the `valint` task to generate an authentication token to access the Scribe API.
 
 ## Parameters
 
-* **scribe-secret**: The name of the secret that has the scribe security secrets.
-
-* **args**: the arguments of the `valint` CLI, which are appended 
-
-* **image-version-sha**: The ID of the valint image cli to be used.
+| Parameter | Description | Default |
+| --- | --- | ---: |
+| `scribe-secret` | The name of the secret that has the scribe security secrets. | scribe-secret |
+| `args` | Arguments of the `valint` CLI | |
+| `image-version-sha` | The ID of the valint image cli to be used. | |
 
 ## Platforms
 
@@ -51,9 +51,9 @@ The Task can be run on `linux/amd64` platforms.
 
 ## Usage
 
-This TaskRun runs the Task to generate sbom for images, files and compressed files
+This TaskRun runs the Task to generate sbom for images, files, directories or git repositories.
 
-```
+```yaml
 apiVersion: tekton.dev/v1beta1
 kind: TaskRun
 metadata:
@@ -63,24 +63,63 @@ spec:
     name: valint
   params:
     - name: args
-      value: bom alpine:latest
-    - name: scribe-secret
-      value: scribe-secret
+      value: 
+        - bom 
+        - alpine:latest
 ```
 
-This task can also run the task to verify the sbom.
+This task can also run the task to verify policies,
 
-```
+```yaml
 apiVersion: tekton.dev/v1beta1
 kind: TaskRun
 metadata:
-  name: valint-task-run-verify
+  name: valint-bom-verify
 spec:
   taskRef:
     name: valint
   params:
     - name: args
-      value: verify alpine:latest
-    - name: scribe-secret
-      value: scribe-secret
+      value: 
+        - bom
+        - alpine:latest
+        - -o=statement
+
+  taskRef:
+    name: valint
+  params:
+    - name: args
+      value: 
+        - verify
+        - alpine:latest
+        - -i=statement
+```
+
+## SLSA Usage
+
+This task can also run the task generate and verify SLSA Provenance for images, files, directories or git repositories.
+
+```yaml
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: valint-slsa-prov-verify
+spec:
+  taskRef:
+    name: valint
+  params:
+    - name: args
+      value: 
+        - slsa
+        - alpine:latest
+        - -o=statement
+
+  taskRef:
+    name: valint
+  params:
+    - name: args
+      value: 
+        - verify
+        - alpine:latest
+        - -i=statement-slsa
 ```
