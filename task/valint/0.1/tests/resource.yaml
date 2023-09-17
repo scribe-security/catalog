@@ -21,4 +21,4 @@ type: Opaque
 stringData:
   scribe_client_id: ""
   scribe_client_secret: ""
-  scribe_enable: "false"
+  scribe_enable: false
